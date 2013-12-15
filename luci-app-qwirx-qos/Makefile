@@ -1,8 +1,10 @@
 include $(TOPDIR)/rules.mk
 
 # Find and include settings from iproute2 to get its build directory
-# include package/network/utils/iproute2/Makefile
-# IPROUTE2_PKG_BUILD_DIR = $(PKG_BUILD_DIR)
+IPROUTE2_SRC_DIR = $(TOPDIR)/package/network/utils/iproute2
+IPROUTE2_BUILD_DIR := $(BUILD_DIR)/iproute2-$(shell \
+	grep "^PKG_VERSION" $(IPROUTE2_SRC_DIR)/Makefile | sed -e 's/.*:=//')
+export IPROUTE2_BUILD_DIR
 
 LUCI_TOPDIR=../../..
 
@@ -50,13 +52,16 @@ define Package/$(PKG_NAME)/conffiles
 endef
 
 define Package/$(PKG_NAME)/description
-Qwirx module for measuring and tuning Quality of Service configuration.
+LuCI module for measuring and tuning Quality of Service configuration.
 endef
 
-$(eval $(call application,$(PKG_NAME),Qwirx QoS Module,\
-	+PACKAGE_iproute2))
+$(eval $(call application,$(PKG_NAME),Qwirx QoS Module,+tc luci))
 
 # PKG_CONFIG_DEPENDS=$(patsubst %,CONFIG_PACKAGE_%,$(LUCI_BUILD_PACKAGES))
+
+define Build/Prepare
+	cp -au src/* $(PKG_BUILD_DIR)
+endef
 
 define Build/Configure
   $(call Build/Configure/Default,--with-linux-headers=$(LINUX_DIR))
@@ -68,3 +73,4 @@ define Package/$(PKG_NAME)/install
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
+

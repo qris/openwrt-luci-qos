@@ -1,0 +1,38 @@
+<%+header%>
+<h2><a id="content" name="content"><%:Diagnostics%></a></h2>
+
+<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="jqplot/excanvas.js"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="<%= luci.config.main.resourcebase %>/qwirx/qos/flot/jquery.flot.js"></script>
+
+<div id="netgraph-graph" style="width: 100%; height: 400px; background: #eee;"></div>
+<div id="netgraph-console" style="width: 100%; min-height: 1em; background: #eee;"></div>
+
+<script type="text/javascript">
+function tracerouteParser(ajaxReply)
+{
+	var newCounterValues = [];
+	
+	for (var hop in ajaxReply.hops)
+	{
+		if (!ajaxReply.hops.hasOwnProperty(hop)) continue;
+
+		var hopInfo = ajaxReply.hops[hop];
+		// data from server is 1-based and string-keyed,
+		// our data is 0-based and array-indexed
+		var index = Number(hop) - 1;
+		newCounterValues[index] = {
+			name: hop,
+			value: Number(hopInfo.rtt) / 1000,
+			label: hopInfo.host
+		};
+	}
+	
+	return newCounterValues;
+}
+
+serverUrl = "../server/traceroute";
+parserFunction = tracerouteParser;
+</script>
+<script type="text/javascript" src="<%= luci.config.main.resourcebase %>/qwirx/qos/netgraph.js"></script>
+
+<%+footer%>
